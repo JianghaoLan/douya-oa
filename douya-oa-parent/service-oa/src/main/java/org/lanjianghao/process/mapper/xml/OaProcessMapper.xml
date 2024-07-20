@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.lanjianghao.process.mapper.OaProcessMapper">
+
+    <select id="selectPage" resultType="org.lanjianghao.vo.process.ProcessVo">
+        SELECT
+        op.id,op.process_code,op.user_id,op.process_template_id,op.process_type_id,op.title,op.description,op.form_values,op.process_instance_id,op.current_auditor,op.status,op.create_time,op.update_time,
+        temp.name as processTemplateName,
+        type.name as processTypeName,
+        su.name
+        FROM oa_process op
+        LEFT JOIN sys_user su on op.user_id = su.id
+        LEFT JOIN oa_process_template temp on op.process_template_id = temp.id
+        LEFT JOIN oa_process_type type on op.process_type_id = `type`.id
+        <where>
+            op.is_deleted = 0 AND su.is_deleted = 0 AND temp.is_deleted = 0 AND `type`.is_deleted = 0
+            <if test="query.keyword != null and query.keyword.length > 0">
+                AND (op.process_code LIKE CONCAT('%', #{query.keyword}, '%') OR
+                    op.title LIKE CONCAT('%', #{query.keyword}, '%') OR
+                    op.description LIKE CONCAT('%', #{query.keyword}, '%') OR
+                    su.name LIKE CONCAT('%', #{query.keyword}, '%') OR
+                    temp.name LIKE CONCAT('%', #{query.keyword}, '%') OR
+                    `type`.name LIKE CONCAT('%', #{query.keyword}, '%'))
+            </if>
+            <if test="query.userId != null">
+                AND op.user_id = #{query.userId}
+            </if>
+            <if test="query.processTemplateId != null">
+                AND op.process_template_id = #{query.processTemplateId}
+            </if>
+            <if test="query.processTypeId != null">
+                AND op.process_type_id = #{query.processTypeId}
+            </if>
+            <if test="query.status != null">
+                AND op.status = #{query.status}
+            </if>
+            <if test="query.createTimeBegin != null">
+                AND op.create_time >= #{query.createTimeBegin}
+            </if>
+            <if test="query.createTimeEnd">
+                AND op.create_time &lt;= #{query.createTimeEnd}
+            </if>
+        </where>
+        ORDER BY ID DESC
+    </select>
+</mapper>
